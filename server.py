@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from yt_dlp import YoutubeDL
 
@@ -24,8 +25,6 @@ def extract():
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-        # grab the best direct media url
-        direct = info.get("url")
         return jsonify({
             "id": info.get("id"),
             "title": info.get("title"),
@@ -33,10 +32,11 @@ def extract():
             "duration": info.get("duration"),
             "ext": info.get("ext") or "mp4",
             "webpage_url": info.get("webpage_url") or url,
-            "download_url": direct
+            "download_url": info.get("url"),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    port = int(os.environ.get("PORT", 8080))   # <-- important on Render
+    app.run(host="0.0.0.0", port=port)
